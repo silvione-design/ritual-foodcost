@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Cost — Ritual Brasileiro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+.topbar{background:#1a1a2e;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-sub{font-size:11px;color:#aaa;margin-top:2px}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e5e5e0;padding:0 20px;position:sticky;top:53px;z-index:99;overflow-x:auto}
+.tab{padding:12px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500;white-space:nowrap}
+.tab.active{color:#1a1a2e;border-bottom-color:#1a1a2e}
+.content{padding:20px;max-width:1100px;margin:0 auto}
+.card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600;color:#1a1a2e}
+.section{display:none}.section.active{display:block}
+input,select{height:34px;border:1px solid #ddd;border-radius:6px;padding:0 10px;font-size:13px;background:#fff;color:#1a1a1a;width:100%;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#1a1a2e}
+.btn{height:34px;padding:0 14px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#333;white-space:nowrap;transition:all 0.15s}
+.btn:hover{background:#f5f5f0}
+.btn-primary{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.btn-primary:hover{background:#2a2a4e}
+.btn-danger{color:#c0392b;border-color:#f5c6c2}
+.btn-danger:hover{background:#fef5f5}
+.btn-sm{height:28px;padding:0 10px;font-size:12px}
+.btn-icon{height:28px;width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px}
+.btn-icon:hover{background:#f5f5f0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;color:#666;font-weight:500;border-bottom:1px solid #e5e5e0;font-size:12px;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:8px 10px;border-bottom:1px solid #f0f0eb;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.metric{background:#f8f8f4;border-radius:8px;padding:12px;text-align:center}
+.metric-label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px}
+.metric-value{font-size:20px;font-weight:600;color:#1a1a2e}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:500}
+.badge-ok{background:#e8f5e9;color:#2e7d32}
+.badge-warn{background:#fff8e1;color:#f57f17}
+.badge-danger{background:#fdecea;color:#c62828}
+.badge-info{background:#e3f2fd;color:#1565c0}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.label{font-size:11px;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.grid-4{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+.grid-5{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px}
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.ing-row{display:grid;grid-template-columns:2.5fr 80px 90px 1.5fr 30px;gap:6px;align-items:center;margin-bottom:6px}
+.result-box{background:#f8f8f4;border-radius:8px;padding:14px;margin-top:12px}
+.result-line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#444}
+.result-total{display:flex;justify-content:space-between;padding:10px;font-size:14px;font-weight:600;color:#1a1a2e;background:#fff;border-radius:6px;margin-top:8px}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:#666;font-size:13px;cursor:pointer;margin-bottom:16px}
+.back-link:hover{color:#1a1a2e}
+.empty-state{text-align:center;padding:40px 20px;color:#aaa}
+.recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.recipe-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:14px;cursor:pointer;transition:all 0.15s}
+.recipe-card:hover{border-color:#1a1a2e;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.recipe-card-name{font-weight:600;font-size:14px;margin-bottom:4px;color:#1a1a2e}
+.recipe-card-sub{font-size:12px;color:#888;margin-bottom:10px}
+.recipe-card-footer{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;padding:2px 8px;border-radius:12px;background:#f0f0eb;color:#555}
+.alert-banner{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;font-size:13px;color:#f57f17;margin-bottom:14px}
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.fc-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.fc-bar-bg{flex:1;height:8px;background:#f0f0eb;border-radius:4px;overflow:hidden}
+.fc-bar{height:8px;border-radius:4px}
+.fc-label{font-size:12px;min-width:42px;text-align:right}
+.fc-name{font-size:12px;color:#333;min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.storico-row{display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0eb;font-size:12px}
+.price-up{color:#c62828}
+.price-down{color:#2e7d32}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a2e;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.88);display:flex;align-items:center;justify-content:center;z-index:999;font-size:14px;color:#666;gap:10px}
+.sep{height:1px;background:#f0f0eb;margin:8px 0}
+.flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.flex-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.print-only{display:none}
+@media print{.topbar,.tabs,.no-print{display:none!important}.print-only{display:block}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<div id="overlay" class="overlay"><div class="spinner"></div> Caricamento...</div>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">🥩 Food Cost Manager</div>
+    <div class="topbar-sub">Ritual Brasileiro — Torino</div>
+  </div>
+  <button class="btn" style="background:transparent;color:#fff;border-color:#555;font-size:12px" onclick="reloadAll()">↻ Ricarica</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab" onclick="showTab('listino',this)">📦 Listino</button>
+  <button class="tab" onclick="showTab('ricette',this)">📋 Ricette</button>
+  <button class="tab" onclick="showTab('vini',this)">🍷 Vini</button>
+  <button class="tab" onclick="showTab('categorie',this)">⚙️ Categorie</button>
+</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="section active">
+  <div id="alerts-box"></div>
+  <div class="dashboard-grid">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Food Cost per ricetta</span></div>
+      <div id="dash-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Riepilogo</span></div>
+      <div id="dash-summary"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Tutte le ricette</span></div>
+    <table><thead><tr>
+      <th>Ricetta</th><th>Categoria</th><th>Porzioni</th>
+      <th>Costo/porz.</th><th>Prezzo c/IVA</th><th>Food Cost %</th><th>Target</th><th></th>
+    </tr></thead><tbody id="dash-table"></tbody></table>
+  </div>
+</div>
+
+<!-- LISTINO -->
+<div id="tab-listino" class="section">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Listino ingredienti</span>
+      <button class="btn btn-primary btn-sm" onclick="openIngForm()">+ Aggiungi</button>
+    </div>
+    <div id="ing-form" style="display:none;margin-bottom:14px;padding:14px;background:#f8f8f4;border-radius:8px">
+      <div class="grid-4">
+        <div class="field"><label class="label">Nome</label><input id="f-ing-nome" placeholder="es. Picanha"></div>
+        <div class="field"><label class="label">Unità acquisto</label>
+          <select id="f-ing-unit">
+            <option value="kg">kg</option><option value="lt">litro</option>
+            <option value="pz">pezzo</option><option value="lattina">lattina</option>
+            <option value="conf">confezione</option><option value="g">grammo</option><option value="ml">ml</option>
+          </select>
+        </div>
+        <div class="field"><label class="label">Peso unitario (g/ml)</label><input id="f-ing-peso" type="number" placeholder="es. 395"></div>
+        <div class="field"><label class="label">Prezzo € / unità</label><input id="f-ing-prezzo" type="number" step="0.01" placeholder="es. 1.80"></div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-primary btn-sm" onclick="saveIng()">💾 Salva</button>
+        <button class="btn btn-sm" onclick="closeIngForm()">Annulla</button>
+      </div>
+      <input type="hidden" id="f-ing-id">
+    </div>
+    <table><thead><tr>
+      <th>Ingrediente</th><th>Unità</th><th>Peso/unità</th><th>Prezzo/unità</th><th>€/100g o ml</th><th>Aggiornato</th><th>Storico</th><th></th>
+    </tr></thead><tbody id="listino-body"></tbody></table>
+  </div>
+  <div id="storico-panel" style="display:none" class="card">
+    <div class="card-header">
+      <span class="card-title" id="storico-title">Storico prezzi</span>
+      <button class="btn btn-sm" onclick="document.getElementById('storico-panel').style.display='none'">✕ Chiudi</button>
+    </div>
+    <div id="storico-body"></div>
+  </div>
+</div>
+
+<!-- RICETTE -->
+<div id="tab-ricette" class="section">
+  <div id="ricette-lista">
+    <div class="flex-between">
+      <span class="card-title">Ricette</span>
+      <button class="btn btn-primary btn-sm" onclick="openRicettaForm(null)">+ Nuova ricetta</button>
+    </div>
+    <div id="recipe-grid" class="recipe-grid"></div>
+  </div>
+  <div id="ricetta-detail" style="display:none">
+    <div class="back-link" onclick="backToList()">← Tutte le ricette</div>
+    <div id="ricetta-form-wrap"></div>
+  </div>
+</div>
+
+<!-- VINI -->
+<div id="tab-vini" class="section">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Vini & Bevande</span>
+      <button class="btn btn-primary btn-sm" onclick="openVinoForm()">+ Aggiungi</button>
+    </div>
+    <div id="vino-form" style="display:none;margin-bottom:14px;padding:14px;background:#f8f8f4;border-radius:8px">
+      <div class="grid-4">
+        <div class="field"><label class="label">Nome</label><input id="f-vino-nome" placeholder="es. Barbera Molino"></div>
+        <div class="field"><label class="label">Categoria</label>
+          <select id="f-vino-cat"><option>Vino</option><option>Birra</option><option>Cocktail</option><option>Analcolico</option><option>Distillato</option><option>Altro</option></select>
+        </div>
+        <div class="field"><label class="label">Costo €</label><input id="f-vino-costo" type="number" step="0.01" placeholder="es. 6.33"></div>
+        <div class="field"><label class="label">Moltiplicatore</label><input id="f-vino-molt" type="number" step="0.1" placeholder="es. 2.8"></div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-primary btn-sm" onclick="saveVino()">💾 Salva</button>
+        <button class="btn btn-sm" onclick="closeVinoForm()">Annulla</button>
+      </div>
+      <input type="hidden" id="f-vino-id">
+    </div>
+    <table><thead><tr>
+      <th>Nome</th><th>Cat.</th><th>Costo</th><th>Moltip.</th><th>Prezzo s/IVA</th><th>Prezzo c/IVA</th><th>Guadagno</th><th></th>
+    </tr></thead><tbody id="vini-body"></tbody></table>
+  </div>
+</div>
+
+<!-- CATEGORIE -->
+<div id="tab-categorie" class="section">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Categorie & Target FC</span>
+      <button class="btn btn-primary btn-sm" onclick="openCatForm()">+ Aggiungi</button>
+    </div>
+    <div id="cat-form" style="display:none;margin-bottom:14px;padding:14px;background:#f8f8f4;border-radius:8px">
+      <div class="grid-2">
+        <div class="field"><label class="label">Nome categoria</label><input id="f-cat-nome" placeholder="es. Carne"></div>
+        <div class="field"><label class="label">FC Target %</label><input id="f-cat-fc" type="number" placeholder="es. 35"></div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-primary btn-sm" onclick="saveCat()">💾 Salva</button>
+        <button class="btn btn-sm" onclick="closeCatForm()">Annulla</button>
+      </div>
+      <input type="hidden" id="f-cat-id">
+    </div>
+    <table><thead><tr><th>Categoria</th><th>FC Target %</th><th>Ricette</th><th></th></tr></thead>
+    <tbody id="cat-body"></tbody></table>
+  </div>
+  <div style="background:#f8f8f4;border-radius:8px;padding:12px;font-size:12px;color:#888">
+    ℹ️ Il FC target è la soglia massima consigliata per categoria. L'app segnala in giallo/rosso le ricette che la superano.
+  </div>
+</div>
+
+</div><!-- /content -->
+<div id="print-sheet" class="print-only"></div>
+
+<script>
+var S = { ingredienti:[], ricette:[], vini:[], categorie:[] };
+var currentRicetta = null;
+var API = '/api/data';
+
+// ── BOOT ─────────────────────────────────────────────────────
+window.onload = function() { loadAll(); };
+
+function loadAll() {
+  fetch(API)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      S = data;
+      document.getElementById('overlay').style.display = 'none';
+      renderAll();
+    })
+    .catch(function(err) {
+      document.getElementById('overlay').innerHTML = '❌ Errore caricamento: ' + err.message;
+    });
+}
+
+function reloadAll() {
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlay').innerHTML = '<div class="spinner"></div> Ricaricamento...';
+  loadAll();
+}
+
+function api(action, body) {
+  return fetch(API + '?action=' + action, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); });
+}
+
+function renderAll() {
+  renderDashboard();
+  renderListino();
+  renderRicette();
+  renderVini();
+  renderCategorie();
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function showTab(t, el) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + t).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── CALCOLO FC ────────────────────────────────────────────────
+function calcRicetta(r) {
+  var costoIng = 0;
+  (r.ingredienti || []).forEach(function(ri) {
+    var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
+    if (!ing) return;
+    var q = parseFloat(ri.qta) || 0;
+    var p = parseFloat(ing.prezzo) || 0;
+    var peso = parseFloat(ing.peso) || 1;
+    if (ri.unit === 'lattina' || ri.unit === 'conf' || ri.unit === 'pz') costoIng += q * p;
+    else if (ri.unit === 'g' || ri.unit === 'ml') costoIng += (q / peso) * p;
+    else if (ri.unit === 'kg' || ri.unit === 'lt') costoIng += q * p;
+  });
+  var costoTot = costoIng + (parseFloat(r.costoFisso) || 0);
+  var porzioni = parseFloat(r.porzioni) || 1;
+  var costoPorz = costoTot / porzioni;
+  var molt = 1 + (parseFloat(r.ricarico) || 0) / 100;
+  var prezzoSiva = costoPorz * molt;
+  var prezzoCiva = prezzoSiva * 1.10;
+  var fc = prezzoSiva > 0 ? (costoPorz / prezzoSiva) * 100 : 0;
+  var cat = S.categorie.find(function(c){ return c.nome === r.categoria; });
+  return { costoIng:costoIng, costoTot:costoTot, costoPorz:costoPorz, prezzoSiva:prezzoSiva, prezzoCiva:prezzoCiva, fc:fc, fcTarget:cat?cat.fcTarget:35 };
+}
+
+function fcBadge(fc, target) {
+  if (fc <= target) return '<span class="badge badge-ok">FC ' + fc.toFixed(1) + '%</span>';
+  if (fc <= target * 1.2) return '<span class="badge badge-warn">FC ' + fc.toFixed(1) + '%</span>';
+  return '<span class="badge badge-danger">FC ' + fc.toFixed(1) + '%</span>';
+}
+
+function fcColor(fc, target) {
+  if (fc <= target) return '#4caf50';
+  if (fc <= target * 1.2) return '#ff9800';
+  return '#f44336';
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard() {
+  var ok=0, warn=0, danger=0;
+  var oggi = new Date();
+  var alerts = [];
+
+  S.ingredienti.forEach(function(ing) {
+    if (!ing.dataAgg) return;
+    var diff = (oggi - new Date(ing.dataAgg)) / 86400000;
+    if (diff <= 7) {
+      var affected = S.ricette.filter(function(r){
+        return (r.ingredienti||[]).some(function(ri){ return ri.ingId == ing.id; });
+      });
+      if (affected.length > 0)
+        alerts.push('⚠️ <strong>' + ing.nome + '</strong> aggiornato di recente — impatta ' + affected.map(function(r){return r.nome;}).join(', '));
+    }
+  });
+
+  document.getElementById('alerts-box').innerHTML = alerts.map(function(a){
+    return '<div class="alert-banner">' + a + '</div>';
+  }).join('');
+
+  var ricOrd = S.ricette.map(function(r){ return {r:r, c:calcRicetta(r)}; }).sort(function(a,b){ return a.c.fc - b.c.fc; });
+
+  var chartEl = document.getElementById('dash-chart');
+  if (ricOrd.length === 0) {
+    chartEl.innerHTML = '<div class="empty-state">📋<br>Nessuna ricetta ancora</div>';
+  } else {
+    chartEl.innerHTML = ricOrd.map(function(item) {
+      var col = fcColor(item.c.fc, item.c.fcTarget);
+      if (item.c.fc <= item.c.fcTarget) ok++;
+      else if (item.c.fc <= item.c.fcTarget * 1.2) warn++;
+      else danger++;
+      return '<div class="fc-bar-wrap">' +
+        '<div class="fc-name" title="' + item.r.nome + '">' + item.r.nome + '</div>' +
+        '<div class="fc-bar-bg"><div class="fc-bar" style="width:' + Math.min(item.c.fc,100) + '%;background:' + col + '"></div></div>' +
+        '<div class="fc-label" style="color:' + col + '">' + item.c.fc.toFixed(1) + '%</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  document.getElementById('dash-summary').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<div class="metric"><div class="metric-label">Totale ricette</div><div class="metric-value">' + S.ricette.length + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Nei limiti</div><div class="metric-value" style="color:#4caf50">' + ok + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Attenzione</div><div class="metric-value" style="color:#ff9800">' + warn + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Fuori target</div><div class="metric-value" style="color:#f44336">' + danger + '</div></div>' +
+    '</div>';
+
+  document.getElementById('dash-table').innerHTML = S.ricette.map(function(r) {
+    var c = calcRicetta(r);
+    return '<tr>' +
+      '<td><strong>' + r.nome + '</strong></td>' +
+      '<td><span class="tag">' + (r.categoria||'—') + '</span></td>' +
+      '<td>' + r.porzioni + '</td>' +
+      '<td>€ ' + c.costoPorz.toFixed(2) + '</td>' +
+      '<td>€ ' + c.prezzoCiva.toFixed(2) + '</td>' +
+      '<td>' + fcBadge(c.fc, c.fcTarget) + '</td>' +
+      '<td style="color:#aaa;font-size:12px">target ' + c.fcTarget + '%</td>' +
+      '<td><button class="btn btn-sm" onclick="gotoRicetta(' + r.id + ')">Apri</button></td>' +
+      '</tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">Nessuna ricetta</td></tr>';
+}
+
+function gotoRicetta(id) {
+  document.querySelectorAll('.tab')[2].click();
+  setTimeout(function(){ openRicettaForm(id); }, 100);
+}
+
+// ── LISTINO ───────────────────────────────────────────────────
+function renderListino() {
+  document.getElementById('listino-body').innerHTML = S.ingredienti.map(function(ing) {
+    var cpp = ing.peso > 0 ? (ing.prezzo / ing.peso * 100).toFixed(3) : '—';
+    var nomeSafe = ing.nome.replace(/'/g, "\\'");
+    return '<tr>' +
+      '<td><strong>' + ing.nome + '</strong></td>' +
+      '<td>' + ing.unit + '</td>' +
+      '<td>' + ing.peso + (ing.unit==='lt'||ing.unit==='ml'?' ml':' g') + '</td>' +
+      '<td>€ ' + parseFloat(ing.prezzo).toFixed(2) + '</td>' +
+      '<td style="color:#888">€ ' + cpp + '</td>' +
+      '<td style="color:#aaa;font-size:12px">' + (ing.dataAgg||'—') + '</td>' +
+      '<td><button class="btn btn-sm" onclick="viewStorico(' + ing.id + ',\'' + nomeSafe + '\')">📈</button></td>' +
+      '<td style="display:flex;gap:4px">' +
+        '<button class="btn-icon" onclick="editIng(' + ing.id + ')">✏️</button>' +
+        '<button class="btn-icon" onclick="delIng(' + ing.id + ')">🗑</button>' +
+      '</td></tr>';
+  }).join('');
+}
+
+function openIngForm() {
+  ['f-ing-id','f-ing-nome','f-ing-peso','f-ing-prezzo'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('ing-form').style.display = 'block';
+  document.getElementById('f-ing-nome').focus();
+}
+
+function closeIngForm() { document.getElementById('ing-form').style.display = 'none'; }
+
+function editIng(id) {
+  var ing = S.ingredienti.find(function(i){ return i.id == id; });
+  if (!ing) return;
+  document.getElementById('f-ing-id').value = ing.id;
+  document.getElementById('f-ing-nome').value = ing.nome;
+  document.getElementById('f-ing-unit').value = ing.unit;
+  document.getElementById('f-ing-peso').value = ing.peso;
+  document.getElementById('f-ing-prezzo').value = ing.prezzo;
+  document.getElementById('ing-form').style.display = 'block';
+}
+
+function saveIng() {
+  var id = document.getElementById('f-ing-id').value;
+  var ing = {
+    id: id ? parseInt(id) : null,
+    nome: document.getElementById('f-ing-nome').value.trim(),
+    unit: document.getElementById('f-ing-unit').value,
+    peso: parseFloat(document.getElementById('f-ing-peso').value) || 1000,
+    prezzo: parseFloat(document.getElementById('f-ing-prezzo').value) || 0
+  };
+  if (!ing.nome || !ing.prezzo) { alert('Inserisci nome e prezzo'); return; }
+  api('saveIngrediente', ing).then(function(){ reloadAll(); closeIngForm(); });
+}
+
+function delIng(id) {
+  if (!confirm('Eliminare questo ingrediente?')) return;
+  api('deleteIngrediente', {id:id}).then(function(){ reloadAll(); });
+}
+
+function viewStorico(id, nome) {
+  document.getElementById('storico-title').textContent = 'Storico — ' + nome;
+  document.getElementById('storico-panel').style.display = 'block';
+  document.getElementById('storico-body').innerHTML = 'Caricamento...';
+  api('getStoricoPrezzo', {id:id}).then(function(data) {
+    var storico = data.storico || [];
+    if (storico.length === 0) {
+      document.getElementById('storico-body').innerHTML = '<div style="color:#aaa;padding:10px 0;font-size:13px">Nessuna variazione registrata.</div>';
+      return;
+    }
+    document.getElementById('storico-body').innerHTML = storico.reverse().map(function(s) {
+      var diff = s.nuovo - s.vecchio;
+      return '<div class="storico-row">' +
+        '<span style="color:#aaa;min-width:90px">' + s.data + '</span>' +
+        '<span>€ ' + parseFloat(s.vecchio).toFixed(2) + '</span><span>→</span>' +
+        '<span class="' + (diff>0?'price-up':'price-down') + '"><strong>€ ' + parseFloat(s.nuovo).toFixed(2) + '</strong> ' + (diff>0?'↑':'↓') + ' ' + Math.abs(diff).toFixed(2) + '</span>' +
+        '</div>';
+    }).join('');
+  });
+}
+
+// ── RICETTE ───────────────────────────────────────────────────
+function renderRicette() {
+  var grid = document.getElementById('recipe-grid');
+  if (S.ricette.length === 0) {
+    grid.innerHTML = '<div class="empty-state">📋<br>Nessuna ricetta. Creane una!</div>';
+    return;
+  }
+  grid.innerHTML = S.ricette.map(function(r) {
+    var c = calcRicetta(r);
+    return '<div class="recipe-card" onclick="openRicettaForm(' + r.id + ')">' +
+      '<div class="recipe-card-name">' + r.nome + '</div>' +
+      '<div class="recipe-card-sub">' + r.porzioni + ' porzioni · ' + (r.categoria||'—') + '</div>' +
+      '<div class="recipe-card-footer">' +
+        '<span class="tag">€ ' + c.costoPorz.toFixed(2) + '/porz.</span>' +
+        '<span class="tag">€ ' + c.prezzoCiva.toFixed(2) + ' c/IVA</span>' +
+        fcBadge(c.fc, c.fcTarget) +
+      '</div></div>';
+  }).join('');
+}
+
+function openRicettaForm(id) {
+  currentRicetta = id
+    ? JSON.parse(JSON.stringify(S.ricette.find(function(x){ return x.id == id; })))
+    : {id:null, nome:'', porzioni:4, ricarico:300, costoFisso:0, categoria:'Carne', ingredienti:[]};
+  document.getElementById('ricette-lista').style.display = 'none';
+  document.getElementById('ricetta-detail').style.display = 'block';
+  renderRicettaDetail();
+}
+
+function backToList() {
+  document.getElementById('ricette-lista').style.display = 'block';
+  document.getElementById('ricetta-detail').style.display = 'none';
+  currentRicetta = null;
+}
+
+function renderRicettaDetail() {
+  var r = currentRicetta;
+  var catOpts = S.categorie.map(function(c){
+    return '<option' + (c.nome===r.categoria?' selected':'') + '>' + c.nome + '</option>';
+  }).join('');
+  var unitOpts = function(u) {
+    return ['g','ml','kg','lt','pz','lattina','conf'].map(function(x){
+      return '<option' + (x===u?' selected':'') + '>' + x + '</option>';
+    }).join('');
+  };
+  var ingRows = (r.ingredienti||[]).map(function(ri, idx) {
+    var ingOpts = S.ingredienti.map(function(i){
+      return '<option value="' + i.id + '"' + (i.id==ri.ingId?' selected':'') + '>' + i.nome + '</option>';
+    }).join('');
+    return '<div class="ing-row">' +
+      '<select onchange="updIng(' + idx + ',\'ingId\',parseInt(this.value))">' + ingOpts + '</select>' +
+      '<input type="number" step="0.1" value="' + ri.qta + '" onchange="updIng(' + idx + ',\'qta\',parseFloat(this.value)||0)" style="text-align:right">' +
+      '<select onchange="updIng(' + idx + ',\'unit\',this.value)">' + unitOpts(ri.unit) + '</select>' +
+      '<input value="' + (ri.note||'') + '" placeholder="Note" onchange="updIng(' + idx + ',\'note\',this.value)">' +
+      '<button class="btn-icon" onclick="remIng(' + idx + ')">🗑</button>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('ricetta-form-wrap').innerHTML =
+    '<div class="card">' +
+    '<div class="grid-5" style="margin-bottom:14px">' +
+      '<div class="field"><label class="label">Nome ricetta</label><input id="r-nome" value="' + r.nome + '" oninput="currentRicetta.nome=this.value;updCalc()"></div>' +
+      '<div class="field"><label class="label">Porzioni</label><input id="r-porz" type="number" value="' + r.porzioni + '" oninput="currentRicetta.porzioni=parseInt(this.value)||1;updCalc()"></div>' +
+      '<div class="field"><label class="label">Ricarico %</label><input id="r-ric" type="number" value="' + r.ricarico + '" oninput="currentRicetta.ricarico=parseFloat(this.value)||0;updCalc()"></div>' +
+      '<div class="field"><label class="label">Costo fisso € (opz.)</label><input id="r-fisso" type="number" step="0.01" value="' + (r.costoFisso||0) + '" oninput="currentRicetta.costoFisso=parseFloat(this.value)||0;updCalc()"></div>' +
+      '<div class="field"><label class="label">Categoria</label><select id="r-cat" onchange="currentRicetta.categoria=this.value;updCalc()">' + catOpts + '</select></div>' +
+    '</div>' +
+    '<div style="font-weight:600;font-size:13px;margin-bottom:8px">Ingredienti</div>' +
+    '<div id="ing-rows">' + ingRows + '</div>' +
+    '<button class="btn btn-sm" style="margin-top:8px" onclick="addIng()">+ Aggiungi ingrediente</button>' +
+    '</div>' +
+    '<div class="metric-grid" id="r-metrics" style="margin-top:14px"></div>' +
+    '<div class="result-box" id="r-result"></div>' +
+    '<div class="flex-row no-print" style="margin-top:14px">' +
+      '<button class="btn btn-primary" onclick="saveRic()">💾 Salva ricetta</button>' +
+      '<button class="btn" onclick="printRicetta()">🖨 Stampa scheda</button>' +
+      (r.id ? '<button class="btn btn-danger" onclick="delRic(' + r.id + ')">🗑 Elimina</button>' : '') +
+    '</div>';
+  updCalc();
+}
+
+function updIng(idx, field, val) { currentRicetta.ingredienti[idx][field] = val; updCalc(); }
+function remIng(idx) { currentRicetta.ingredienti.splice(idx,1); renderRicettaDetail(); }
+function addIng() {
+  var first = S.ingredienti[0];
+  currentRicetta.ingredienti.push({ingId:first?first.id:1, qta:0, unit:'g', note:''});
+  renderRicettaDetail();
+}
+
+function updCalc() {
+  var r = currentRicetta;
+  var c = calcRicetta(r);
+  var m = document.getElementById('r-metrics');
+  var res = document.getElementById('r-result');
+  if (!m) return;
+  m.innerHTML =
+    '<div class="metric"><div class="metric-label">Costo ingredienti</div><div class="metric-value">€ ' + c.costoIng.toFixed(2) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Costo per porzione</div><div class="metric-value">€ ' + c.costoPorz.toFixed(2) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Prezzo s/IVA</div><div class="metric-value">€ ' + c.prezzoSiva.toFixed(2) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Prezzo c/IVA (10%)</div><div class="metric-value">€ ' + c.prezzoCiva.toFixed(2) + '</div></div>';
+  res.innerHTML =
+    '<div class="result-line"><span>Costo ingredienti totale</span><span>€ ' + c.costoIng.toFixed(2) + '</span></div>' +
+    (r.costoFisso > 0 ? '<div class="result-line"><span>+ Costo fisso</span><span>€ ' + parseFloat(r.costoFisso).toFixed(2) + '</span></div>' : '') +
+    '<div class="result-line"><span>Costo totale (' + r.porzioni + ' porzioni)</span><span>€ ' + c.costoTot.toFixed(2) + '</span></div>' +
+    '<div class="sep"></div>' +
+    '<div class="result-total"><span>💰 Prezzo vendita consigliato (IVA incl.)</span><span>€ ' + c.prezzoCiva.toFixed(2) + '</span></div>' +
+    '<div class="result-line" style="margin-top:8px"><span>Food Cost %</span><span>' + fcBadge(c.fc, c.fcTarget) + ' (target cat.: ' + c.fcTarget + '%)</span></div>';
+}
+
+function saveRic() {
+  var r = currentRicetta;
+  r.nome = document.getElementById('r-nome').value.trim();
+  if (!r.nome) { alert('Inserisci un nome'); return; }
+  api('saveRicetta', r).then(function(){ reloadAll(); backToList(); });
+}
+
+function delRic(id) {
+  if (!confirm('Eliminare questa ricetta?')) return;
+  api('deleteRicetta', {id:id}).then(function(){ reloadAll(); backToList(); });
+}
+
+function printRicetta() {
+  var r = currentRicetta;
+  var c = calcRicetta(r);
+  var ings = (r.ingredienti||[]).map(function(ri){
+    var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
+    return '<tr><td style="padding:4px 8px">' + (ing?ing.nome:'—') + '</td><td style="padding:4px 8px">' + ri.qta + ' ' + ri.unit + '</td><td style="padding:4px 8px">' + (ri.note||'') + '</td></tr>';
+  }).join('');
+  document.getElementById('print-sheet').innerHTML =
+    '<h1 style="font-size:18px;margin-bottom:4px">' + r.nome + '</h1>' +
+    '<p style="font-size:12px;color:#666;margin-bottom:12px">Categoria: ' + r.categoria + ' — ' + r.porzioni + ' porzioni — Ritual Brasileiro</p>' +
+    '<table border="1" style="border-collapse:collapse;width:100%;font-size:12px;margin-bottom:12px">' +
+    '<thead><tr style="background:#f0f0f0"><th style="padding:4px 8px">Ingrediente</th><th>Quantità</th><th>Note</th></tr></thead>' +
+    '<tbody>' + ings + '</tbody></table>' +
+    '<p><strong>Costo porzione:</strong> € ' + c.costoPorz.toFixed(2) + ' &nbsp;|&nbsp; <strong>Prezzo vendita:</strong> € ' + c.prezzoCiva.toFixed(2) + ' &nbsp;|&nbsp; <strong>FC:</strong> ' + c.fc.toFixed(1) + '%</p>';
+  window.print();
+}
+
+// ── VINI ──────────────────────────────────────────────────────
+function renderVini() {
+  document.getElementById('vini-body').innerHTML = S.vini.map(function(v) {
+    var siva = (v.costo * v.molt).toFixed(2);
+    var civa = (v.costo * v.molt * 1.10).toFixed(2);
+    var guad = (v.costo * v.molt - v.costo).toFixed(2);
+    return '<tr>' +
+      '<td><strong>' + v.nome + '</strong></td>' +
+      '<td><span class="tag">' + v.cat + '</span></td>' +
+      '<td>€ ' + parseFloat(v.costo).toFixed(2) + '</td>' +
+      '<td>' + v.molt + 'x</td>' +
+      '<td>€ ' + siva + '</td>' +
+      '<td><strong>€ ' + civa + '</strong></td>' +
+      '<td style="color:#2e7d32">€ ' + guad + '</td>' +
+      '<td style="display:flex;gap:4px">' +
+        '<button class="btn-icon" onclick="editVino(' + v.id + ')">✏️</button>' +
+        '<button class="btn-icon" onclick="delVino(' + v.id + ')">🗑</button>' +
+      '</td></tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">Nessun prodotto</td></tr>';
+}
+
+function openVinoForm() {
+  ['f-vino-id','f-vino-nome','f-vino-costo','f-vino-molt'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('vino-form').style.display = 'block';
+  document.getElementById('f-vino-nome').focus();
+}
+
+function closeVinoForm() { document.getElementById('vino-form').style.display = 'none'; }
+
+function editVino(id) {
+  var v = S.vini.find(function(x){ return x.id == id; });
+  if (!v) return;
+  document.getElementById('f-vino-id').value = v.id;
+  document.getElementById('f-vino-nome').value = v.nome;
+  document.getElementById('f-vino-cat').value = v.cat;
+  document.getElementById('f-vino-costo').value = v.costo;
+  document.getElementById('f-vino-molt').value = v.molt;
+  document.getElementById('vino-form').style.display = 'block';
+}
+
+function saveVino() {
+  var id = document.getElementById('f-vino-id').value;
+  var v = {
+    id: id ? parseInt(id) : null,
+    nome: document.getElementById('f-vino-nome').value.trim(),
+    cat: document.getElementById('f-vino-cat').value,
+    costo: parseFloat(document.getElementById('f-vino-costo').value) || 0,
+    molt: parseFloat(document.getElementById('f-vino-molt').value) || 1
+  };
+  if (!v.nome || !v.costo) { alert('Inserisci nome e costo'); return; }
+  api('saveVino', v).then(function(){ reloadAll(); closeVinoForm(); });
+}
+
+function delVino(id) {
+  if (!confirm('Eliminare?')) return;
+  api('deleteVino', {id:id}).then(function(){ reloadAll(); });
+}
+
+// ── CATEGORIE ─────────────────────────────────────────────────
+function renderCategorie() {
+  document.getElementById('cat-body').innerHTML = S.categorie.map(function(c) {
+    var count = S.ricette.filter(function(r){ return r.categoria === c.nome; }).length;
+    return '<tr>' +
+      '<td><strong>' + c.nome + '</strong></td>' +
+      '<td><span class="badge badge-info">' + c.fcTarget + '%</span></td>' +
+      '<td style="color:#888">' + count + ' ricett' + (count!==1?'e':'a') + '</td>' +
+      '<td style="display:flex;gap:4px">' +
+        '<button class="btn-icon" onclick="editCat(' + c.id + ')">✏️</button>' +
+        '<button class="btn-icon" onclick="delCat(' + c.id + ')">🗑</button>' +
+      '</td></tr>';
+  }).join('');
+}
+
+function openCatForm() {
+  ['f-cat-id','f-cat-nome','f-cat-fc'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('cat-form').style.display = 'block';
+  document.getElementById('f-cat-nome').focus();
+}
+
+function closeCatForm() { document.getElementById('cat-form').style.display = 'none'; }
+
+function editCat(id) {
+  var c = S.categorie.find(function(x){ return x.id == id; });
+  if (!c) return;
+  document.getElementById('f-cat-id').value = c.id;
+  document.getElementById('f-cat-nome').value = c.nome;
+  document.getElementById('f-cat-fc').value = c.fcTarget;
+  document.getElementById('cat-form').style.display = 'block';
+}
+
+function saveCat() {
+  var id = document.getElementById('f-cat-id').value;
+  var cat = {
+    id: id ? parseInt(id) : null,
+    nome: document.getElementById('f-cat-nome').value.trim(),
+    fcTarget: parseFloat(document.getElementById('f-cat-fc').value) || 30
+  };
+  if (!cat.nome) { alert('Inserisci un nome'); return; }
+  api('saveCategoria', cat).then(function(){ reloadAll(); closeCatForm(); });
+}
+
+function delCat(id) {
+  if (!confirm('Eliminare?')) return;
+  api('deleteCategoria', {id:id}).then(function(){ reloadAll(); });
+}
+</script>
+</body>
+</html>
