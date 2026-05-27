@@ -345,6 +345,10 @@ function calcCostoIngrediente(ri) {
   return 0;
 }
 
+function fmt(n) {
+  return parseFloat(n).toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
 function fcBadge(fc, target) {
   if (fc <= target) return '<span class="badge badge-ok">FC ' + fc.toFixed(1) + '%</span>';
   if (fc <= target * 1.2) return '<span class="badge badge-warn">FC ' + fc.toFixed(1) + '%</span>';
@@ -409,8 +413,8 @@ function renderDashboard() {
       '<td><strong>' + r.nome + '</strong></td>' +
       '<td><span class="tag">' + (r.categoria||'—') + '</span></td>' +
       '<td>' + r.porzioni + '</td>' +
-      '<td>€ ' + c.costoPorz.toFixed(2) + '</td>' +
-      '<td>€ ' + c.prezzoCiva.toFixed(2) + '</td>' +
+      '<td>€ ' + fmt(c.costoPorz) + '</td>' +
+      '<td>€ ' + fmt(c.prezzoCiva) + '</td>' +
       '<td>' + fcBadge(c.fc, c.fcTarget) + '</td>' +
       '<td style="color:#aaa;font-size:12px">target ' + c.fcTarget + '%</td>' +
       '<td><button class="btn btn-sm" onclick="gotoRicetta(' + r.id + ')">Apri</button></td>' +
@@ -435,12 +439,12 @@ function renderListino() {
     var cpp = ing.peso > 0 ? (ing.prezzo / ing.peso * 100).toFixed(3) : '—';
     var nomeSafe = ing.nome.replace(/'/g, "\\'");
     // Per pezzi mostra prezzo per pezzo invece di per 100g
-    var costoUnitLabel = (ing.unit==='pz') ? '€/pz: ' + parseFloat(ing.prezzo).toFixed(2) : '€/100g: ' + cpp;
+    var costoUnitLabel = (ing.unit==='pz') ? '€/pz: ' + fmt(ing.prezzo) : '€/100g: ' + cpp;
     return '<tr>' +
       '<td><strong>' + ing.nome + '</strong></td>' +
       '<td>' + ing.unit + '</td>' +
       '<td>' + ing.peso + (ing.unit==='lt'||ing.unit==='ml'?' ml':(ing.unit==='pz'?' pz':' g')) + '</td>' +
-      '<td>€ ' + parseFloat(ing.prezzo).toFixed(2) + '</td>' +
+      '<td>€ ' + fmt(ing.prezzo) + '</td>' +
       '<td style="color:#888;font-size:12px">' + costoUnitLabel + '</td>' +
       '<td style="color:#aaa;font-size:12px">' + (ing.dataAgg||'—') + '</td>' +
       '<td><button class="btn btn-sm" onclick="viewStorico(' + ing.id + ',\'' + nomeSafe + '\')">📈</button></td>' +
@@ -467,9 +471,9 @@ function updateIngHint() {
   var prezzo = parseFloat(document.getElementById('f-ing-prezzo').value) || 0;
   var hint = '';
   if (unit === 'pz' && peso > 0 && prezzo > 0) {
-    hint = '→ Costo per pezzo: € ' + prezzo.toFixed(2);
+    hint = '→ Costo per pezzo: € ' + fmt(prezzo);
   } else if ((unit === 'conf' || unit === 'lattina') && peso > 0 && prezzo > 0) {
-    hint = '→ Se il peso/pezzi è ' + peso + ' e il prezzo è €' + prezzo.toFixed(2) + ', costo unitario: € ' + (prezzo/peso).toFixed(3);
+    hint = '→ Se il peso/pezzi è ' + peso + ' e il prezzo è €' + fmt(prezzo) + ', costo unitario: € ' + (prezzo/peso).toFixed(3);
   } else if (peso > 0 && prezzo > 0) {
     hint = '→ Costo per 100g/ml: € ' + (prezzo/peso*100).toFixed(3);
   }
@@ -525,8 +529,8 @@ function viewStorico(id, nome) {
       var diff = s.nuovo - s.vecchio;
       return '<div class="storico-row">' +
         '<span style="color:#aaa;min-width:90px">' + s.data + '</span>' +
-        '<span>€ ' + parseFloat(s.vecchio).toFixed(2) + '</span><span>→</span>' +
-        '<span class="' + (diff>0?'price-up':'price-down') + '"><strong>€ ' + parseFloat(s.nuovo).toFixed(2) + '</strong> ' + (diff>0?'↑':'↓') + ' ' + Math.abs(diff).toFixed(2) + '</span>' +
+        '<span>€ ' + fmt(s.vecchio) + '</span><span>→</span>' +
+        '<span class="' + (diff>0?'price-up':'price-down') + '"><strong>€ ' + fmt(s.nuovo) + '</strong> ' + (diff>0?'↑':'↓') + ' ' + fmt(Math.abs(diff)) + '</span>' +
         '</div>';
     }).join('');
   });
@@ -545,8 +549,8 @@ function renderRicette() {
       '<div class="recipe-card-name">' + r.nome + '</div>' +
       '<div class="recipe-card-sub">' + r.porzioni + ' porzioni · ' + (r.categoria||'—') + '</div>' +
       '<div class="recipe-card-footer">' +
-        '<span class="tag">€ ' + c.costoPorz.toFixed(2) + '/porz.</span>' +
-        '<span class="tag">€ ' + c.prezzoCiva.toFixed(2) + ' c/IVA</span>' +
+        '<span class="tag">€ ' + fmt(c.costoPorz) + '/porz.</span>' +
+        '<span class="tag">€ ' + fmt(c.prezzoCiva) + ' c/IVA</span>' +
         fcBadge(c.fc, c.fcTarget) +
       '</div></div>';
   }).join('');
@@ -648,27 +652,27 @@ function updCalc() {
   (r.ingredienti||[]).forEach(function(ri, idx) {
     var costo = calcCostoIngrediente(ri);
     var el = document.getElementById('ing-cost-' + idx);
-    if (el) el.textContent = '€' + costo.toFixed(2);
+    if (el) el.textContent = '€' + fmt(costo);
   });
 
   m.innerHTML =
-    '<div class="metric"><div class="metric-label">Costo ingredienti</div><div class="metric-value">€ ' + c.costoIng.toFixed(2) + '</div></div>' +
-    '<div class="metric"><div class="metric-label">Costo per porzione</div><div class="metric-value">€ ' + c.costoPorz.toFixed(2) + '</div></div>' +
-    '<div class="metric"><div class="metric-label">Prezzo s/IVA</div><div class="metric-value">€ ' + c.prezzoSiva.toFixed(2) + '</div></div>' +
-    '<div class="metric"><div class="metric-label">Prezzo c/IVA (10%)</div><div class="metric-value">€ ' + c.prezzoCiva.toFixed(2) + '</div></div>';
+    '<div class="metric"><div class="metric-label">Costo ingredienti</div><div class="metric-value">€ ' + fmt(c.costoIng) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Costo per porzione</div><div class="metric-value">€ ' + fmt(c.costoPorz) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Prezzo s/IVA</div><div class="metric-value">€ ' + fmt(c.prezzoSiva) + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Prezzo c/IVA (10%)</div><div class="metric-value">€ ' + fmt(c.prezzoCiva) + '</div></div>';
 
   var prezzoRealeInfo = '';
   if (r.prezzoReale && r.prezzoReale > 0) {
     var fcReale = c.costoPorz > 0 ? (c.costoPorz / (r.prezzoReale / 1.10)) * 100 : 0;
-    prezzoRealeInfo = '<div class="prezzo-reale-box">💶 Prezzo reale di vendita: <strong>€ ' + parseFloat(r.prezzoReale).toFixed(2) + '</strong> → FC reale: ' + fcBadge(fcReale, c.fcTarget) + '</div>';
+    prezzoRealeInfo = '<div class="prezzo-reale-box">💶 Prezzo reale di vendita: <strong>€ ' + fmt(r.prezzoReale) + '</strong> → FC reale: ' + fcBadge(fcReale, c.fcTarget) + '</div>';
   }
 
   res.innerHTML =
-    '<div class="result-line"><span>Costo ingredienti totale</span><span>€ ' + c.costoIng.toFixed(2) + '</span></div>' +
-    (r.costoFisso > 0 ? '<div class="result-line"><span>+ Costo fisso</span><span>€ ' + parseFloat(r.costoFisso).toFixed(2) + '</span></div>' : '') +
-    '<div class="result-line"><span>Costo totale (' + r.porzioni + ' porzioni)</span><span>€ ' + c.costoTot.toFixed(2) + '</span></div>' +
+    '<div class="result-line"><span>Costo ingredienti totale</span><span>€ ' + fmt(c.costoIng) + '</span></div>' +
+    (r.costoFisso > 0 ? '<div class="result-line"><span>+ Costo fisso</span><span>€ ' + fmt(r.costoFisso) + '</span></div>' : '') +
+    '<div class="result-line"><span>Costo totale (' + r.porzioni + ' porzioni)</span><span>€ ' + fmt(c.costoTot) + '</span></div>' +
     '<div class="sep"></div>' +
-    '<div class="result-total"><span>💰 Prezzo vendita consigliato (IVA incl.)</span><span>€ ' + c.prezzoCiva.toFixed(2) + '</span></div>' +
+    '<div class="result-total"><span>💰 Prezzo vendita consigliato (IVA incl.)</span><span>€ ' + fmt(c.prezzoCiva) + '</span></div>' +
     '<div class="result-line" style="margin-top:8px"><span>Food Cost %</span><span>' + fcBadge(c.fc, c.fcTarget) + ' (target cat.: ' + c.fcTarget + '%)</span></div>' +
     prezzoRealeInfo;
 }
@@ -691,7 +695,7 @@ function printRicetta() {
   var ings = (r.ingredienti||[]).map(function(ri){
     var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
     var costo = calcCostoIngrediente(ri);
-    return '<tr><td style="padding:4px 8px">' + (ing?ing.nome:'—') + '</td><td style="padding:4px 8px">' + ri.qta + ' ' + ri.unit + '</td><td style="padding:4px 8px">' + (ri.note||'') + '</td><td style="padding:4px 8px;text-align:right">€ ' + costo.toFixed(2) + '</td></tr>';
+    return '<tr><td style="padding:4px 8px">' + (ing?ing.nome:'—') + '</td><td style="padding:4px 8px">' + ri.qta + ' ' + ri.unit + '</td><td style="padding:4px 8px">' + (ri.note||'') + '</td><td style="padding:4px 8px;text-align:right">€ ' + fmt(costo) + '</td></tr>';
   }).join('');
   document.getElementById('print-sheet').innerHTML =
     '<h1 style="font-size:18px;margin-bottom:4px">' + r.nome + '</h1>' +
@@ -699,7 +703,7 @@ function printRicetta() {
     '<table border="1" style="border-collapse:collapse;width:100%;font-size:12px;margin-bottom:12px">' +
     '<thead><tr style="background:#f0f0f0"><th style="padding:4px 8px">Ingrediente</th><th>Quantità</th><th>Note</th><th>Costo</th></tr></thead>' +
     '<tbody>' + ings + '</tbody></table>' +
-    '<p><strong>Costo porzione:</strong> € ' + c.costoPorz.toFixed(2) + ' &nbsp;|&nbsp; <strong>Prezzo vendita:</strong> € ' + c.prezzoCiva.toFixed(2) + ' &nbsp;|&nbsp; <strong>FC:</strong> ' + c.fc.toFixed(1) + '%</p>';
+    '<p><strong>Costo porzione:</strong> € ' + fmt(c.costoPorz) + ' &nbsp;|&nbsp; <strong>Prezzo vendita:</strong> € ' + fmt(c.prezzoCiva) + ' &nbsp;|&nbsp; <strong>FC:</strong> ' + c.fc.toFixed(1) + '%</p>';
   window.print();
 }
 
@@ -712,14 +716,14 @@ function renderVini() {
   if (_viniSort) lista = lista.slice().sort(function(a,b){ return a.nome.localeCompare(b.nome,'it'); });
 
   document.getElementById('vini-body').innerHTML = lista.map(function(v) {
-    var siva = (v.costo * v.molt).toFixed(2);
-    var civa = (v.costo * v.molt * 1.10).toFixed(2);
-    var guad = (v.costo * v.molt - v.costo).toFixed(2);
+    var siva = fmt(v.costo * v.molt);
+    var civa = fmt(v.costo * v.molt * 1.10);
+    var guad = fmt(v.costo * v.molt - v.costo);
     var ricarico = ((v.molt - 1) * 100).toFixed(0);
     return '<tr>' +
       '<td><strong>' + v.nome + '</strong></td>' +
       '<td><span class="tag">' + v.cat + '</span></td>' +
-      '<td>€ ' + parseFloat(v.costo).toFixed(2) + '</td>' +
+      '<td>€ ' + fmt(v.costo) + '</td>' +
       '<td>€ ' + siva + '</td>' +
       '<td><strong>€ ' + civa + '</strong></td>' +
       '<td style="color:#2e7d32">€ ' + guad + '</td>' +
@@ -747,8 +751,8 @@ function updateVinoHint() {
     var molt = vendita / costo;
     document.getElementById('f-vino-molt').value = molt.toFixed(3);
     var ricarico = ((molt - 1) * 100).toFixed(0);
-    var civa = (vendita * 1.10).toFixed(2);
-    document.getElementById('vino-hint').textContent = '→ Moltiplicatore: ' + molt.toFixed(2) + 'x | Ricarico: ' + ricarico + '% | Prezzo c/IVA: € ' + civa;
+    var civa = fmt(vendita * 1.10);
+    document.getElementById('vino-hint').textContent = '→ Moltiplicatore: ' + fmt(molt) + 'x | Ricarico: ' + ricarico + '% | Prezzo c/IVA: € ' + civa;
   } else {
     document.getElementById('vino-hint').textContent = '';
     document.getElementById('f-vino-molt').value = '';
@@ -764,7 +768,7 @@ function editVino(id) {
   document.getElementById('f-vino-nome').value = v.nome;
   document.getElementById('f-vino-cat').value = v.cat;
   document.getElementById('f-vino-costo').value = v.costo;
-  document.getElementById('f-vino-vendita').value = (v.costo * v.molt).toFixed(2);
+  document.getElementById('f-vino-vendita').value = fmt(v.costo * v.molt);
   document.getElementById('f-vino-molt').value = v.molt;
   document.getElementById('vino-form').style.display = 'block';
   document.getElementById('f-vino-costo').oninput = updateVinoHint;
