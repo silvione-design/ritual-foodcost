@@ -15,7 +15,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .tab.active{color:#1a1a2e;border-bottom-color:#1a1a2e}
 .content{padding:20px;max-width:1100px;margin:0 auto}
 .card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:16px 20px;margin-bottom:16px}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .card-title{font-size:14px;font-weight:600;color:#1a1a2e}
 .section{display:none}.section.active{display:block}
 input,select{height:34px;border:1px solid #ddd;border-radius:6px;padding:0 10px;font-size:13px;background:#fff;color:#1a1a1a;width:100%;font-family:inherit}
@@ -78,8 +78,18 @@ tr:hover td{background:#fafafa}
 .sep{height:1px;background:#f0f0eb;margin:8px 0}
 .flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .flex-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.search-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.prezzo-reale-box{background:#e8f5e9;border-radius:8px;padding:10px 14px;margin-top:8px;display:flex;align-items:center;gap:10px;font-size:13px}
 .print-only{display:none}
 @media print{.topbar,.tabs,.no-print{display:none!important}.print-only{display:block}body{background:#fff}}
+@media(max-width:600px){
+  .metric-grid{grid-template-columns:1fr 1fr}
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-5{grid-template-columns:1fr 1fr}
+  .ing-row{grid-template-columns:1fr 60px 70px 28px;gap:4px}
+  .ing-row input[placeholder="Note"],.ing-row span{display:none}
+  .dashboard-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -131,7 +141,11 @@ tr:hover td{background:#fafafa}
   <div class="card">
     <div class="card-header">
       <span class="card-title">Listino ingredienti</span>
-      <button class="btn btn-primary btn-sm" onclick="openIngForm()">+ Aggiungi</button>
+      <div class="flex-row">
+        <input id="listino-search" type="text" placeholder="🔍 Cerca ingrediente..." style="width:200px;height:28px;font-size:12px" oninput="renderListino()">
+        <button class="btn btn-sm" onclick="toggleSortListino()">↕ A-Z</button>
+        <button class="btn btn-primary btn-sm" onclick="openIngForm()">+ Aggiungi</button>
+      </div>
     </div>
     <div id="ing-form" style="display:none;margin-bottom:14px;padding:14px;background:#f8f8f4;border-radius:8px">
       <div class="grid-4">
@@ -143,9 +157,10 @@ tr:hover td{background:#fafafa}
             <option value="conf">confezione</option><option value="g">grammo</option><option value="ml">ml</option>
           </select>
         </div>
-        <div class="field"><label class="label">Peso unitario (g/ml)</label><input id="f-ing-peso" type="number" placeholder="es. 395"></div>
-        <div class="field"><label class="label">Prezzo € / unità</label><input id="f-ing-prezzo" type="number" step="0.01" placeholder="es. 1.80"></div>
+        <div class="field"><label class="label">Peso/pezzi per unità</label><input id="f-ing-peso" type="number" placeholder="es. 30 (pezzi) o 395 (g)"></div>
+        <div class="field"><label class="label">Prezzo € / unità</label><input id="f-ing-prezzo" type="number" step="0.01" placeholder="es. 15.00"></div>
       </div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px" id="ing-hint"></div>
       <div class="flex-row">
         <button class="btn btn-primary btn-sm" onclick="saveIng()">💾 Salva</button>
         <button class="btn btn-sm" onclick="closeIngForm()">Annulla</button>
@@ -153,7 +168,7 @@ tr:hover td{background:#fafafa}
       <input type="hidden" id="f-ing-id">
     </div>
     <table><thead><tr>
-      <th>Ingrediente</th><th>Unità</th><th>Peso/unità</th><th>Prezzo/unità</th><th>€/100g o ml</th><th>Aggiornato</th><th>Storico</th><th></th>
+      <th>Ingrediente</th><th>Unità</th><th>Peso/pezzi per unità</th><th>Prezzo/unità</th><th>€/100g o €/pz</th><th>Aggiornato</th><th>Storico</th><th></th>
     </tr></thead><tbody id="listino-body"></tbody></table>
   </div>
   <div id="storico-panel" style="display:none" class="card">
@@ -185,7 +200,11 @@ tr:hover td{background:#fafafa}
   <div class="card">
     <div class="card-header">
       <span class="card-title">Vini & Bevande</span>
-      <button class="btn btn-primary btn-sm" onclick="openVinoForm()">+ Aggiungi</button>
+      <div class="flex-row">
+        <input id="vini-search" type="text" placeholder="🔍 Cerca..." style="width:180px;height:28px;font-size:12px" oninput="renderVini()">
+        <button class="btn btn-sm" onclick="toggleSortVini()">↕ A-Z</button>
+        <button class="btn btn-primary btn-sm" onclick="openVinoForm()">+ Aggiungi</button>
+      </div>
     </div>
     <div id="vino-form" style="display:none;margin-bottom:14px;padding:14px;background:#f8f8f4;border-radius:8px">
       <div class="grid-4">
@@ -194,16 +213,18 @@ tr:hover td{background:#fafafa}
           <select id="f-vino-cat"><option>Vino</option><option>Birra</option><option>Cocktail</option><option>Analcolico</option><option>Distillato</option><option>Altro</option></select>
         </div>
         <div class="field"><label class="label">Costo €</label><input id="f-vino-costo" type="number" step="0.01" placeholder="es. 6.33"></div>
-        <div class="field"><label class="label">Moltiplicatore</label><input id="f-vino-molt" type="number" step="0.1" placeholder="es. 2.8"></div>
+        <div class="field"><label class="label">Prezzo vendita € (o moltip.)</label><input id="f-vino-vendita" type="number" step="0.01" placeholder="es. 25.00"></div>
       </div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px" id="vino-hint"></div>
       <div class="flex-row">
         <button class="btn btn-primary btn-sm" onclick="saveVino()">💾 Salva</button>
         <button class="btn btn-sm" onclick="closeVinoForm()">Annulla</button>
       </div>
       <input type="hidden" id="f-vino-id">
+      <input type="hidden" id="f-vino-molt">
     </div>
     <table><thead><tr>
-      <th>Nome</th><th>Cat.</th><th>Costo</th><th>Moltip.</th><th>Prezzo s/IVA</th><th>Prezzo c/IVA</th><th>Guadagno</th><th></th>
+      <th>Nome</th><th>Cat.</th><th>Costo</th><th>Prezzo vendita</th><th>Prezzo c/IVA</th><th>Guadagno</th><th>Ricarico</th><th></th>
     </tr></thead><tbody id="vini-body"></tbody></table>
   </div>
 </div>
@@ -234,15 +255,16 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-</div><!-- /content -->
+</div>
 <div id="print-sheet" class="print-only"></div>
 
 <script>
 var S = { ingredienti:[], ricette:[], vini:[], categorie:[] };
 var currentRicetta = null;
 var API = '/api/data';
+var _listinoSort = false;
+var _viniSort = false;
 
-// ── BOOT ─────────────────────────────────────────────────────
 window.onload = function() { loadAll(); };
 
 function loadAll() {
@@ -254,7 +276,7 @@ function loadAll() {
       renderAll();
     })
     .catch(function(err) {
-      document.getElementById('overlay').innerHTML = '❌ Errore caricamento: ' + err.message;
+      document.getElementById('overlay').innerHTML = '❌ Errore: ' + err.message;
     });
 }
 
@@ -280,7 +302,6 @@ function renderAll() {
   renderCategorie();
 }
 
-// ── TABS ─────────────────────────────────────────────────────
 function showTab(t, el) {
   document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
@@ -312,6 +333,18 @@ function calcRicetta(r) {
   return { costoIng:costoIng, costoTot:costoTot, costoPorz:costoPorz, prezzoSiva:prezzoSiva, prezzoCiva:prezzoCiva, fc:fc, fcTarget:cat?cat.fcTarget:35 };
 }
 
+function calcCostoIngrediente(ri) {
+  var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
+  if (!ing) return 0;
+  var q = parseFloat(ri.qta) || 0;
+  var p = parseFloat(ing.prezzo) || 0;
+  var peso = parseFloat(ing.peso) || 1;
+  if (ri.unit === 'lattina' || ri.unit === 'conf' || ri.unit === 'pz') return q * p;
+  if (ri.unit === 'g' || ri.unit === 'ml') return (q / peso) * p;
+  if (ri.unit === 'kg' || ri.unit === 'lt') return q * p;
+  return 0;
+}
+
 function fcBadge(fc, target) {
   if (fc <= target) return '<span class="badge badge-ok">FC ' + fc.toFixed(1) + '%</span>';
   if (fc <= target * 1.2) return '<span class="badge badge-warn">FC ' + fc.toFixed(1) + '%</span>';
@@ -329,7 +362,6 @@ function renderDashboard() {
   var ok=0, warn=0, danger=0;
   var oggi = new Date();
   var alerts = [];
-
   S.ingredienti.forEach(function(ing) {
     if (!ing.dataAgg) return;
     var diff = (oggi - new Date(ing.dataAgg)) / 86400000;
@@ -341,13 +373,11 @@ function renderDashboard() {
         alerts.push('⚠️ <strong>' + ing.nome + '</strong> aggiornato di recente — impatta ' + affected.map(function(r){return r.nome;}).join(', '));
     }
   });
-
   document.getElementById('alerts-box').innerHTML = alerts.map(function(a){
     return '<div class="alert-banner">' + a + '</div>';
   }).join('');
 
   var ricOrd = S.ricette.map(function(r){ return {r:r, c:calcRicetta(r)}; }).sort(function(a,b){ return a.c.fc - b.c.fc; });
-
   var chartEl = document.getElementById('dash-chart');
   if (ricOrd.length === 0) {
     chartEl.innerHTML = '<div class="empty-state">📋<br>Nessuna ricetta ancora</div>';
@@ -394,16 +424,24 @@ function gotoRicetta(id) {
 }
 
 // ── LISTINO ───────────────────────────────────────────────────
+function toggleSortListino() { _listinoSort = !_listinoSort; renderListino(); }
+
 function renderListino() {
-  document.getElementById('listino-body').innerHTML = S.ingredienti.map(function(ing) {
+  var search = (document.getElementById('listino-search')||{value:''}).value.toLowerCase();
+  var lista = S.ingredienti.filter(function(ing){ return ing.nome.toLowerCase().indexOf(search) >= 0; });
+  if (_listinoSort) lista = lista.slice().sort(function(a,b){ return a.nome.localeCompare(b.nome,'it'); });
+
+  document.getElementById('listino-body').innerHTML = lista.map(function(ing) {
     var cpp = ing.peso > 0 ? (ing.prezzo / ing.peso * 100).toFixed(3) : '—';
     var nomeSafe = ing.nome.replace(/'/g, "\\'");
+    // Per pezzi mostra prezzo per pezzo invece di per 100g
+    var costoUnitLabel = (ing.unit==='pz') ? '€/pz: ' + parseFloat(ing.prezzo).toFixed(2) : '€/100g: ' + cpp;
     return '<tr>' +
       '<td><strong>' + ing.nome + '</strong></td>' +
       '<td>' + ing.unit + '</td>' +
-      '<td>' + ing.peso + (ing.unit==='lt'||ing.unit==='ml'?' ml':' g') + '</td>' +
+      '<td>' + ing.peso + (ing.unit==='lt'||ing.unit==='ml'?' ml':(ing.unit==='pz'?' pz':' g')) + '</td>' +
       '<td>€ ' + parseFloat(ing.prezzo).toFixed(2) + '</td>' +
-      '<td style="color:#888">€ ' + cpp + '</td>' +
+      '<td style="color:#888;font-size:12px">' + costoUnitLabel + '</td>' +
       '<td style="color:#aaa;font-size:12px">' + (ing.dataAgg||'—') + '</td>' +
       '<td><button class="btn btn-sm" onclick="viewStorico(' + ing.id + ',\'' + nomeSafe + '\')">📈</button></td>' +
       '<td style="display:flex;gap:4px">' +
@@ -416,7 +454,26 @@ function renderListino() {
 function openIngForm() {
   ['f-ing-id','f-ing-nome','f-ing-peso','f-ing-prezzo'].forEach(function(id){ document.getElementById(id).value=''; });
   document.getElementById('ing-form').style.display = 'block';
+  document.getElementById('ing-hint').textContent = '';
   document.getElementById('f-ing-nome').focus();
+  document.getElementById('f-ing-unit').onchange = updateIngHint;
+  document.getElementById('f-ing-peso').oninput = updateIngHint;
+  document.getElementById('f-ing-prezzo').oninput = updateIngHint;
+}
+
+function updateIngHint() {
+  var unit = document.getElementById('f-ing-unit').value;
+  var peso = parseFloat(document.getElementById('f-ing-peso').value) || 0;
+  var prezzo = parseFloat(document.getElementById('f-ing-prezzo').value) || 0;
+  var hint = '';
+  if (unit === 'pz' && peso > 0 && prezzo > 0) {
+    hint = '→ Costo per pezzo: € ' + prezzo.toFixed(2);
+  } else if ((unit === 'conf' || unit === 'lattina') && peso > 0 && prezzo > 0) {
+    hint = '→ Se il peso/pezzi è ' + peso + ' e il prezzo è €' + prezzo.toFixed(2) + ', costo unitario: € ' + (prezzo/peso).toFixed(3);
+  } else if (peso > 0 && prezzo > 0) {
+    hint = '→ Costo per 100g/ml: € ' + (prezzo/peso*100).toFixed(3);
+  }
+  document.getElementById('ing-hint').textContent = hint;
 }
 
 function closeIngForm() { document.getElementById('ing-form').style.display = 'none'; }
@@ -430,6 +487,10 @@ function editIng(id) {
   document.getElementById('f-ing-peso').value = ing.peso;
   document.getElementById('f-ing-prezzo').value = ing.prezzo;
   document.getElementById('ing-form').style.display = 'block';
+  document.getElementById('f-ing-unit').onchange = updateIngHint;
+  document.getElementById('f-ing-peso').oninput = updateIngHint;
+  document.getElementById('f-ing-prezzo').oninput = updateIngHint;
+  updateIngHint();
 }
 
 function saveIng() {
@@ -494,7 +555,7 @@ function renderRicette() {
 function openRicettaForm(id) {
   currentRicetta = id
     ? JSON.parse(JSON.stringify(S.ricette.find(function(x){ return x.id == id; })))
-    : {id:null, nome:'', porzioni:4, ricarico:300, costoFisso:0, categoria:'Carne', ingredienti:[]};
+    : {id:null, nome:'', porzioni:4, ricarico:300, costoFisso:0, categoria:'Carne', prezzoReale:0, ingredienti:[]};
   document.getElementById('ricette-lista').style.display = 'none';
   document.getElementById('ricetta-detail').style.display = 'block';
   renderRicettaDetail();
@@ -536,10 +597,11 @@ function renderRicettaDetail() {
       '<div class="field"><label class="label">Nome ricetta</label><input id="r-nome" value="' + r.nome + '" oninput="currentRicetta.nome=this.value;updCalc()"></div>' +
       '<div class="field"><label class="label">Porzioni</label><input id="r-porz" type="number" value="' + r.porzioni + '" oninput="currentRicetta.porzioni=parseInt(this.value)||1;updCalc()"></div>' +
       '<div class="field"><label class="label">Ricarico %</label><input id="r-ric" type="number" value="' + r.ricarico + '" oninput="currentRicetta.ricarico=parseFloat(this.value)||0;updCalc()"></div>' +
-      '<div class="field"><label class="label">Costo fisso € (opz.)</label><input id="r-fisso" type="number" step="0.01" value="' + (r.costoFisso||0) + '" oninput="currentRicetta.costoFisso=parseFloat(this.value)||0;updCalc()"></div>' +
+      '<div class="field"><label class="label">Prezzo reale € (opz.)</label><input id="r-prezzo-reale" type="number" step="0.01" value="' + (r.prezzoReale||'') + '" placeholder="es. 7.00" oninput="updPrezzoReale(this.value)"></div>' +
       '<div class="field"><label class="label">Categoria</label><select id="r-cat" onchange="currentRicetta.categoria=this.value;updCalc()">' + catOpts + '</select></div>' +
     '</div>' +
-    '<div style="font-weight:600;font-size:13px;margin-bottom:8px">Ingredienti</div>' +
+    '<div class="field"><label class="label">Costo fisso € (opz.)</label><input id="r-fisso" type="number" step="0.01" value="' + (r.costoFisso||0) + '" style="max-width:150px" oninput="currentRicetta.costoFisso=parseFloat(this.value)||0;updCalc()"></div>' +
+    '<div style="font-weight:600;font-size:13px;margin-bottom:8px;margin-top:8px">Ingredienti</div>' +
     '<div id="ing-rows">' + ingRows + '</div>' +
     '<button class="btn btn-sm" style="margin-top:8px" onclick="addIng()">+ Aggiungi ingrediente</button>' +
     '</div>' +
@@ -550,6 +612,20 @@ function renderRicettaDetail() {
       '<button class="btn" onclick="printRicetta()">🖨 Stampa scheda</button>' +
       (r.id ? '<button class="btn btn-danger" onclick="delRic(' + r.id + ')">🗑 Elimina</button>' : '') +
     '</div>';
+  updCalc();
+}
+
+function updPrezzoReale(val) {
+  var prezzo = parseFloat(val) || 0;
+  currentRicetta.prezzoReale = prezzo;
+  if (prezzo > 0) {
+    var c = calcRicetta(currentRicetta);
+    var prezzoSiva = prezzo / 1.10;
+    var ricarico = c.costoPorz > 0 ? ((prezzoSiva / c.costoPorz) - 1) * 100 : 0;
+    currentRicetta.ricarico = Math.round(ricarico);
+    var ricEl = document.getElementById('r-ric');
+    if (ricEl) ricEl.value = currentRicetta.ricarico;
+  }
   updCalc();
 }
 
@@ -567,29 +643,34 @@ function updCalc() {
   var m = document.getElementById('r-metrics');
   var res = document.getElementById('r-result');
   if (!m) return;
+
+  // Costo per singolo ingrediente
   (r.ingredienti||[]).forEach(function(ri, idx) {
-    var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
-    if (!ing) return;
-    var q = parseFloat(ri.qta)||0;
-    var costo = 0;
-    if(ri.unit==='lattina'||ri.unit==='conf'||ri.unit==='pz') costo = q*ing.prezzo;
-    else if(ri.unit==='g'||ri.unit==='ml') costo = (q/(ing.peso||1))*ing.prezzo;
-    else if(ri.unit==='kg'||ri.unit==='lt') costo = q*ing.prezzo;
-    var el = document.getElementById('ing-cost-'+idx);
-    if(el) el.textContent = '€'+costo.toFixed(2);
+    var costo = calcCostoIngrediente(ri);
+    var el = document.getElementById('ing-cost-' + idx);
+    if (el) el.textContent = '€' + costo.toFixed(2);
   });
+
   m.innerHTML =
     '<div class="metric"><div class="metric-label">Costo ingredienti</div><div class="metric-value">€ ' + c.costoIng.toFixed(2) + '</div></div>' +
     '<div class="metric"><div class="metric-label">Costo per porzione</div><div class="metric-value">€ ' + c.costoPorz.toFixed(2) + '</div></div>' +
     '<div class="metric"><div class="metric-label">Prezzo s/IVA</div><div class="metric-value">€ ' + c.prezzoSiva.toFixed(2) + '</div></div>' +
     '<div class="metric"><div class="metric-label">Prezzo c/IVA (10%)</div><div class="metric-value">€ ' + c.prezzoCiva.toFixed(2) + '</div></div>';
+
+  var prezzoRealeInfo = '';
+  if (r.prezzoReale && r.prezzoReale > 0) {
+    var fcReale = c.costoPorz > 0 ? (c.costoPorz / (r.prezzoReale / 1.10)) * 100 : 0;
+    prezzoRealeInfo = '<div class="prezzo-reale-box">💶 Prezzo reale di vendita: <strong>€ ' + parseFloat(r.prezzoReale).toFixed(2) + '</strong> → FC reale: ' + fcBadge(fcReale, c.fcTarget) + '</div>';
+  }
+
   res.innerHTML =
     '<div class="result-line"><span>Costo ingredienti totale</span><span>€ ' + c.costoIng.toFixed(2) + '</span></div>' +
     (r.costoFisso > 0 ? '<div class="result-line"><span>+ Costo fisso</span><span>€ ' + parseFloat(r.costoFisso).toFixed(2) + '</span></div>' : '') +
     '<div class="result-line"><span>Costo totale (' + r.porzioni + ' porzioni)</span><span>€ ' + c.costoTot.toFixed(2) + '</span></div>' +
     '<div class="sep"></div>' +
     '<div class="result-total"><span>💰 Prezzo vendita consigliato (IVA incl.)</span><span>€ ' + c.prezzoCiva.toFixed(2) + '</span></div>' +
-    '<div class="result-line" style="margin-top:8px"><span>Food Cost %</span><span>' + fcBadge(c.fc, c.fcTarget) + ' (target cat.: ' + c.fcTarget + '%)</span></div>';
+    '<div class="result-line" style="margin-top:8px"><span>Food Cost %</span><span>' + fcBadge(c.fc, c.fcTarget) + ' (target cat.: ' + c.fcTarget + '%)</span></div>' +
+    prezzoRealeInfo;
 }
 
 function saveRic() {
@@ -609,32 +690,40 @@ function printRicetta() {
   var c = calcRicetta(r);
   var ings = (r.ingredienti||[]).map(function(ri){
     var ing = S.ingredienti.find(function(i){ return i.id == ri.ingId; });
-    return '<tr><td style="padding:4px 8px">' + (ing?ing.nome:'—') + '</td><td style="padding:4px 8px">' + ri.qta + ' ' + ri.unit + '</td><td style="padding:4px 8px">' + (ri.note||'') + '</td></tr>';
+    var costo = calcCostoIngrediente(ri);
+    return '<tr><td style="padding:4px 8px">' + (ing?ing.nome:'—') + '</td><td style="padding:4px 8px">' + ri.qta + ' ' + ri.unit + '</td><td style="padding:4px 8px">' + (ri.note||'') + '</td><td style="padding:4px 8px;text-align:right">€ ' + costo.toFixed(2) + '</td></tr>';
   }).join('');
   document.getElementById('print-sheet').innerHTML =
     '<h1 style="font-size:18px;margin-bottom:4px">' + r.nome + '</h1>' +
     '<p style="font-size:12px;color:#666;margin-bottom:12px">Categoria: ' + r.categoria + ' — ' + r.porzioni + ' porzioni — Ritual Brasileiro</p>' +
     '<table border="1" style="border-collapse:collapse;width:100%;font-size:12px;margin-bottom:12px">' +
-    '<thead><tr style="background:#f0f0f0"><th style="padding:4px 8px">Ingrediente</th><th>Quantità</th><th>Note</th></tr></thead>' +
+    '<thead><tr style="background:#f0f0f0"><th style="padding:4px 8px">Ingrediente</th><th>Quantità</th><th>Note</th><th>Costo</th></tr></thead>' +
     '<tbody>' + ings + '</tbody></table>' +
     '<p><strong>Costo porzione:</strong> € ' + c.costoPorz.toFixed(2) + ' &nbsp;|&nbsp; <strong>Prezzo vendita:</strong> € ' + c.prezzoCiva.toFixed(2) + ' &nbsp;|&nbsp; <strong>FC:</strong> ' + c.fc.toFixed(1) + '%</p>';
   window.print();
 }
 
 // ── VINI ──────────────────────────────────────────────────────
+function toggleSortVini() { _viniSort = !_viniSort; renderVini(); }
+
 function renderVini() {
-  document.getElementById('vini-body').innerHTML = S.vini.map(function(v) {
+  var search = (document.getElementById('vini-search')||{value:''}).value.toLowerCase();
+  var lista = S.vini.filter(function(v){ return v.nome.toLowerCase().indexOf(search) >= 0; });
+  if (_viniSort) lista = lista.slice().sort(function(a,b){ return a.nome.localeCompare(b.nome,'it'); });
+
+  document.getElementById('vini-body').innerHTML = lista.map(function(v) {
     var siva = (v.costo * v.molt).toFixed(2);
     var civa = (v.costo * v.molt * 1.10).toFixed(2);
     var guad = (v.costo * v.molt - v.costo).toFixed(2);
+    var ricarico = ((v.molt - 1) * 100).toFixed(0);
     return '<tr>' +
       '<td><strong>' + v.nome + '</strong></td>' +
       '<td><span class="tag">' + v.cat + '</span></td>' +
       '<td>€ ' + parseFloat(v.costo).toFixed(2) + '</td>' +
-      '<td>' + v.molt + 'x</td>' +
       '<td>€ ' + siva + '</td>' +
       '<td><strong>€ ' + civa + '</strong></td>' +
       '<td style="color:#2e7d32">€ ' + guad + '</td>' +
+      '<td style="color:#888;font-size:12px">' + ricarico + '%</td>' +
       '<td style="display:flex;gap:4px">' +
         '<button class="btn-icon" onclick="editVino(' + v.id + ')">✏️</button>' +
         '<button class="btn-icon" onclick="delVino(' + v.id + ')">🗑</button>' +
@@ -643,9 +732,27 @@ function renderVini() {
 }
 
 function openVinoForm() {
-  ['f-vino-id','f-vino-nome','f-vino-costo','f-vino-molt'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['f-vino-id','f-vino-nome','f-vino-costo','f-vino-vendita'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('f-vino-molt').value = '';
   document.getElementById('vino-form').style.display = 'block';
   document.getElementById('f-vino-nome').focus();
+  document.getElementById('f-vino-costo').oninput = updateVinoHint;
+  document.getElementById('f-vino-vendita').oninput = updateVinoHint;
+}
+
+function updateVinoHint() {
+  var costo = parseFloat(document.getElementById('f-vino-costo').value) || 0;
+  var vendita = parseFloat(document.getElementById('f-vino-vendita').value) || 0;
+  if (costo > 0 && vendita > 0) {
+    var molt = vendita / costo;
+    document.getElementById('f-vino-molt').value = molt.toFixed(3);
+    var ricarico = ((molt - 1) * 100).toFixed(0);
+    var civa = (vendita * 1.10).toFixed(2);
+    document.getElementById('vino-hint').textContent = '→ Moltiplicatore: ' + molt.toFixed(2) + 'x | Ricarico: ' + ricarico + '% | Prezzo c/IVA: € ' + civa;
+  } else {
+    document.getElementById('vino-hint').textContent = '';
+    document.getElementById('f-vino-molt').value = '';
+  }
 }
 
 function closeVinoForm() { document.getElementById('vino-form').style.display = 'none'; }
@@ -657,18 +764,25 @@ function editVino(id) {
   document.getElementById('f-vino-nome').value = v.nome;
   document.getElementById('f-vino-cat').value = v.cat;
   document.getElementById('f-vino-costo').value = v.costo;
+  document.getElementById('f-vino-vendita').value = (v.costo * v.molt).toFixed(2);
   document.getElementById('f-vino-molt').value = v.molt;
   document.getElementById('vino-form').style.display = 'block';
+  document.getElementById('f-vino-costo').oninput = updateVinoHint;
+  document.getElementById('f-vino-vendita').oninput = updateVinoHint;
+  updateVinoHint();
 }
 
 function saveVino() {
   var id = document.getElementById('f-vino-id').value;
+  var costo = parseFloat(document.getElementById('f-vino-costo').value) || 0;
+  var vendita = parseFloat(document.getElementById('f-vino-vendita').value) || 0;
+  var molt = vendita > 0 && costo > 0 ? vendita / costo : parseFloat(document.getElementById('f-vino-molt').value) || 1;
   var v = {
     id: id ? parseInt(id) : null,
     nome: document.getElementById('f-vino-nome').value.trim(),
     cat: document.getElementById('f-vino-cat').value,
-    costo: parseFloat(document.getElementById('f-vino-costo').value) || 0,
-    molt: parseFloat(document.getElementById('f-vino-molt').value) || 1
+    costo: costo,
+    molt: parseFloat(molt.toFixed(4))
   };
   if (!v.nome || !v.costo) { alert('Inserisci nome e costo'); return; }
   api('saveVino', v).then(function(){ reloadAll(); closeVinoForm(); });
